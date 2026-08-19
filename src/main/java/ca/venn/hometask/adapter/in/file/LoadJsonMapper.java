@@ -6,23 +6,22 @@ import ca.venn.hometask.domain.model.LoadRequest;
 import ca.venn.hometask.domain.model.LoadResult;
 import org.springframework.stereotype.Component;
 
-/**
- * Maps between the file adapter's raw JSON DTOs and domain models.
- *
- * <p>Logic to be implemented:
- * <ul>
- *   <li>Parse {@link LoadRequestJson#loadAmount()} (e.g. {@code "$123.45"}) into a
- *       {@link java.math.BigDecimal}</li>
- *   <li>Parse {@link LoadRequestJson#time()} (ISO-8601, e.g.
- *       {@code "2018-01-01T00:00:00Z"}) into an {@link java.time.Instant}</li>
- * </ul>
- */
+import java.math.BigDecimal;
+import java.time.Instant;
+
 @Component
 public class LoadJsonMapper {
 
     public LoadRequest toDomain(LoadRequestJson json) {
         // TODO: parse currency string and ISO-8601 timestamp
-        throw new UnsupportedOperationException("Not yet implemented");
+        var loadAmount = new BigDecimal(json.loadAmount().replace("$", ""));
+
+        return new LoadRequest(
+                json.id(),
+                json.customerId(),
+                loadAmount,
+                Instant.parse(json.time())
+        );
     }
 
     public LoadResultJson toJson(LoadResult result) {

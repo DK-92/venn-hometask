@@ -1,46 +1,76 @@
 package ca.venn.hometask.domain.service;
 
+import ca.venn.hometask.domain.model.LoadRecord;
 import ca.venn.hometask.domain.model.LoadRequest;
 import ca.venn.hometask.domain.model.LoadResult;
+import ca.venn.hometask.domain.model.VelocityLimitsProperties;
 import ca.venn.hometask.domain.port.in.ProcessLoadUseCase;
 import ca.venn.hometask.domain.port.out.LoadRecordRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
+import java.time.DayOfWeek;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Optional;
 
-/**
- * Core domain service implementing {@link ProcessLoadUseCase}.
- *
- * <p>Evaluates each incoming {@link LoadRequest} against the customer's daily
- * amount limit, weekly amount limit, and daily count limit (see
- * {@link ca.venn.hometask.domain.model.VelocityLimits}), then persists the
- * outcome via {@link LoadRecordRepository} so it is accounted for in
- * subsequent evaluations.
- *
- * <p>Business logic to be implemented:
- * <ul>
- *   <li>Ignore (return {@link Optional#empty()}) requests whose id has already
- *       been seen for the given customer</li>
- *   <li>Compute the current UTC day and ISO week (Mon-Sun) boundaries for the
- *       request's timestamp</li>
- *   <li>Determine acceptance based on
- *       {@link ca.venn.hometask.domain.model.VelocityLimits}</li>
- *   <li>Persist a {@link ca.venn.hometask.domain.model.LoadRecord} reflecting
- *       the outcome (accepted or declined)</li>
- * </ul>
- */
 @Service
 public class LoadVelocityService implements ProcessLoadUseCase {
 
+    private final VelocityLimitsProperties velocityLimitsProperties;
     private final LoadRecordRepository loadRecordRepository;
 
-    public LoadVelocityService(LoadRecordRepository loadRecordRepository) {
+    public LoadVelocityService(
+            VelocityLimitsProperties velocityLimitsProperties,
+            LoadRecordRepository loadRecordRepository
+    ) {
+        this.velocityLimitsProperties = velocityLimitsProperties;
         this.loadRecordRepository = loadRecordRepository;
     }
 
     @Override
     public Optional<LoadResult> process(LoadRequest request) {
-        // TODO: implement velocity limit evaluation logic
-        throw new UnsupportedOperationException("Not yet implemented");
+        if (loadRecordRepository.existsByIdAndCustomerId(request.id(), request.customerId())) {
+            return Optional.empty();
+        }
+
+        var accepted = true;
+
+        var startOfDay = request.time().truncatedTo(ChronoUnit.DAYS);
+        var endOfDay = startOfDay.plus(1, ChronoUnit.DAYS);
+
+        var dailyCount = loadRecordRepository.countAccepted(request.customerId(), startOfDay, endOfDay);
+        if (dailyCount + 1 > velocityLimitsProperties.maxDailyLoadCount()) {
+            accepted = false;
+        }
+
+        var dailyAmount = loadRecordRepository.sumAcceptedAmount(request.customerId(), startOfDay, endOfDay);
+        if (dailyAmount.add(request.loadAmount()).compareTo(velocityLimitsProperties.maxDailyLoadAmount()) > 0) {
+            accepted = false;
+        }
+
+        ZonedDateTime zdt = ZonedDateTime.ofInstant(request.time(), ZoneOffset.UTC)
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                .truncatedTo(ChronoUnit.DAYS);
+
+        var startOfWeek = zdt.toInstant();
+        var endOfWeek = zdt.plusDays(7).toInstant();
+        var weeklySum = loadRecordRepository.sumAcceptedAmount(request.customerId(), startOfWeek, endOfWeek);
+        if (weeklySum.add(request.loadAmount()).compareTo(velocityLimitsProperties.maxWeeklyLoadAmount()) > 0) {
+            accepted = false;
+        }
+
+        var newRecord = new LoadRecord(
+                request.id(),
+                request.customerId(),
+                request.loadAmount(),
+                request.time(),
+                accepted
+        );
+        loadRecordRepository.save(newRecord);
+
+        return Optional.of(new LoadResult(request.id(), request.customerId(), accepted));
     }
 }

@@ -7,5 +7,5 @@ public record LoadRequest(
         String id,
         String customerId,
         BigDecimal loadAmount,
-        Instant time) {
-}
+        Instant time
+) { }
