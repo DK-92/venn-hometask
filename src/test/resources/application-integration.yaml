@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:hometask-integration;DB_CLOSE_DELAY=-1
+
+hometask:
+  runner:
+    enabled: true
+  input-path: classpath:integration-test-input.jsonl
+  output-path: build/integration-test-output.txt

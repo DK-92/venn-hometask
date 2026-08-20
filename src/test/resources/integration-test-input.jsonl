@@ -1,0 +1,9 @@
+{"id":"accept-1","customer_id":"cust-accept","load_amount":"$100.00","time":"2023-06-14T10:00:00Z"}
+{"id":"daily-1","customer_id":"cust-daily","load_amount":"$4950.00","time":"2023-06-14T09:00:00Z"}
+{"id":"daily-2","customer_id":"cust-daily","load_amount":"$100.00","time":"2023-06-14T09:05:00Z"}
+{"id":"dup-1","customer_id":"cust-dup","load_amount":"$50.00","time":"2023-06-14T11:00:00Z"}
+{"id":"dup-1","customer_id":"cust-dup","load_amount":"$60.00","time":"2023-06-14T11:05:00Z"}
+
+{"id":"after-blank","customer_id":"cust-blank","load_amount":"$20.00","time":"2023-06-14T12:00:00Z"}
+{"id":"bad-1","customer_id":"cust-malformed","load_amount":
+{"id":"after-malformed","customer_id":"cust-malformed","load_amount":"$30.00","time":"2023-06-14T13:00:00Z"}

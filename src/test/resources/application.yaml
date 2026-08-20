@@ -1,9 +1,0 @@
-hometask:
-  runner:
-    enabled: false
-
-velocity:
-  limits:
-    max-daily-load-amount: 5000.00
-    max-weekly-load-amount: 20000.00
-    max-daily-load-count: 3
