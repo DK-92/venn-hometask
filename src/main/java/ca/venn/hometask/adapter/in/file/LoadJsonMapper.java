@@ -7,14 +7,16 @@ import ca.venn.hometask.domain.model.LoadResult;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 
 @Component
 public class LoadJsonMapper {
 
     public LoadRequest toDomain(LoadRequestJson json) {
-        // TODO: parse currency string and ISO-8601 timestamp
-        var loadAmount = new BigDecimal(json.loadAmount().replace("$", ""));
+        var loadAmount =
+                new BigDecimal(json.loadAmount().replace("$", ""))
+                        .setScale(2, RoundingMode.UNNECESSARY);
 
         return new LoadRequest(
                 json.id(),
