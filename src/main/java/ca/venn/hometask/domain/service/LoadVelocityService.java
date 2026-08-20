@@ -8,7 +8,6 @@ import ca.venn.hometask.domain.port.in.ProcessLoadUseCase;
 import ca.venn.hometask.domain.port.out.LoadRecordRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
 import java.time.DayOfWeek;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
