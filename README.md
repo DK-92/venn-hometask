@@ -1,4 +1,4 @@
-# Hometask — Load Velocity Limits
+# Venn task
 
 A Spring Boot service that processes fund-load attempts from a file and decides whether it should be accepted or declined based on a customer's load
 velocity (how much/how often they're loading money).
