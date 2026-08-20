@@ -3,6 +3,7 @@ package ca.venn.hometask.adapter.out.persistence;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 
@@ -20,12 +21,14 @@ import java.util.Objects;
 @Table(name = "load_records", indexes = {
         @Index(name = "idx_load_records_customer_time", columnList = "customerId,time")
 })
+@IdClass(LoadJpaEntityId.class)
 public class LoadJpaEntity {
 
     @Id
     @Column(nullable = false)
     private String loadId;
 
+    @Id
     @Column(nullable = false)
     private String customerId;
 

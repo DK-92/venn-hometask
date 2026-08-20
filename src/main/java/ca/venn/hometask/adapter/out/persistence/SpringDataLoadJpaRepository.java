@@ -7,7 +7,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-public interface SpringDataLoadJpaRepository extends JpaRepository<LoadJpaEntity, String> {
+public interface SpringDataLoadJpaRepository extends JpaRepository<LoadJpaEntity, LoadJpaEntityId> {
 
     boolean existsByLoadIdAndCustomerId(String loadId, String customerId);
 

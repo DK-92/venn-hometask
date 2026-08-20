@@ -12,9 +12,6 @@ import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Integration tests for {@link LoadRepositoryAdapter} against an in-memory H2 database.
- */
 @DataJpaTest
 class LoadRepositoryAdapterTest {
 
@@ -29,42 +26,77 @@ class LoadRepositoryAdapterTest {
     }
 
     @Test
-    void savesAndDetectsExistingLoadRecordByIdAndCustomer() {
-        Instant now = Instant.parse("2018-01-01T00:00:00Z");
-        adapter.save(new LoadRecord("1", "100", new BigDecimal("50.00"), now, true));
+    void existsByIdAndCustomerId_returnsTrue_whenLoadRecordWithMatchingIdAndCustomerIdExists() {
+        // given
+        adapter.save(loadRecord("1", "100", true));
 
-        assertThat(adapter.existsByIdAndCustomerId("1", "100")).isTrue();
-        assertThat(adapter.existsByIdAndCustomerId("2", "100")).isFalse();
-        assertThat(adapter.existsByIdAndCustomerId("1", "999")).isFalse();
+        // when
+        boolean exists = adapter.existsByIdAndCustomerId("1", "100");
+
+        // then
+        assertThat(exists).isTrue();
     }
 
     @Test
-    void sumsAcceptedAmountsWithinTimeRangeOnly() {
+    void existsByIdAndCustomerId_returnsFalse_whenIdDoesNotMatch() {
+        // given
+        adapter.save(loadRecord("1", "100", true));
+
+        // when
+        boolean exists = adapter.existsByIdAndCustomerId("2", "100");
+
+        // then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    void existsByIdAndCustomerId_returnsFalse_whenCustomerIdDoesNotMatch() {
+        // given
+        adapter.save(loadRecord("1", "100", true));
+
+        // when
+        boolean exists = adapter.existsByIdAndCustomerId("1", "999");
+
+        // then
+        assertThat(exists).isFalse();
+    }
+
+    @Test
+    void sumAcceptedAmount_sumsOnlyAcceptedLoadsWithinTimeRange() {
+        // given
         Instant dayStart = Instant.parse("2018-01-01T00:00:00Z");
         Instant dayEnd = dayStart.plus(1, ChronoUnit.DAYS);
+        saveAcceptedAndRejectedLoadsAcrossTimeRange(dayStart, dayEnd);
 
-        adapter.save(new LoadRecord("1", "100", new BigDecimal("100.00"), dayStart, true));
-        adapter.save(new LoadRecord("2", "100", new BigDecimal("200.00"), dayStart.plusSeconds(60), true));
-        adapter.save(new LoadRecord("3", "100", new BigDecimal("300.00"), dayStart, false));
-        adapter.save(new LoadRecord("4", "100", new BigDecimal("999.00"), dayEnd, true));
-
+        // when
         BigDecimal sum = adapter.sumAcceptedAmount("100", dayStart, dayEnd);
 
+        // then
         assertThat(sum).isEqualByComparingTo("300.00");
     }
 
     @Test
-    void countsAcceptedLoadsWithinTimeRangeOnly() {
+    void countAccepted_countsOnlyAcceptedLoadsWithinTimeRange() {
+        // given
         Instant dayStart = Instant.parse("2018-01-01T00:00:00Z");
         Instant dayEnd = dayStart.plus(1, ChronoUnit.DAYS);
+        saveAcceptedAndRejectedLoadsAcrossTimeRange(dayStart, dayEnd);
 
+        // when
+        long count = adapter.countAccepted("100", dayStart, dayEnd);
+
+        // then
+        assertThat(count).isEqualTo(2);
+    }
+
+    private void saveAcceptedAndRejectedLoadsAcrossTimeRange(Instant dayStart, Instant dayEnd) {
         adapter.save(new LoadRecord("1", "100", new BigDecimal("100.00"), dayStart, true));
         adapter.save(new LoadRecord("2", "100", new BigDecimal("200.00"), dayStart.plusSeconds(60), true));
         adapter.save(new LoadRecord("3", "100", new BigDecimal("300.00"), dayStart, false));
         adapter.save(new LoadRecord("4", "100", new BigDecimal("999.00"), dayEnd, true));
+    }
 
-        long count = adapter.countAccepted("100", dayStart, dayEnd);
-
-        assertThat(count).isEqualTo(2);
+    private LoadRecord loadRecord(String id, String customerId, boolean accepted) {
+        return new LoadRecord(id, customerId, new BigDecimal("50.00"), Instant.parse("2018-01-01T00:00:00Z"), accepted);
     }
 }
