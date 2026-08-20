@@ -11,12 +11,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 
-/**
- * JPA entity persisting a customer's fund load record for velocity limit tracking.
- *
- * <p>The primary key is the composite of {@code loadId} and {@code customerId},
- * since load ids are only guaranteed unique per customer.
- */
 @Entity
 @Table(name = "load_records", indexes = {
         @Index(name = "idx_load_records_customer_time", columnList = "customerId,time")

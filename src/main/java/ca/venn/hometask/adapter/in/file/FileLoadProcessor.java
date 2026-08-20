@@ -24,15 +24,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
-/**
- * Inbound adapter driving the {@link ProcessLoadUseCase} from a line-delimited
- * JSON file.
- *
- * <p>Reads one {@link LoadRequestJson} per line from the configured input path,
- * evaluates it via the use case, and writes one {@link LoadResultJson} per line
- * to the configured output path (skipping lines for which the use case returns
- * no result, e.g. duplicate load ids).
- */
 @Component
 @ConditionalOnProperty(value = "hometask.runner.enabled", havingValue = "true", matchIfMissing = true)
 public class FileLoadProcessor implements CommandLineRunner {

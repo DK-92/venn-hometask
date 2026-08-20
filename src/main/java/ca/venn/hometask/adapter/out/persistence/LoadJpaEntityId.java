@@ -3,10 +3,6 @@ package ca.venn.hometask.adapter.out.persistence;
 import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * Composite primary key for {@link LoadJpaEntity}, combining {@code loadId} and
- * {@code customerId} since load ids are only guaranteed unique per customer.
- */
 public class LoadJpaEntityId implements Serializable {
 
     private String loadId;
